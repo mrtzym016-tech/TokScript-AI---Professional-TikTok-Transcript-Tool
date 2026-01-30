@@ -19,27 +19,40 @@ const App: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [pendingUpgrade, setPendingUpgrade] = useState(false);
 
-  // رابط الدفع الخاص بك (Binance Pay)
+  // الرابط الخاص بـ Binance Pay
   const BINANCE_PAYMENT_URL = "https://app.binance.com/payment/sec/placeholder";
 
+  // تحميل بيانات المستخدم بأمان
   useEffect(() => {
-    const savedUser = localStorage.getItem('tokscript_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('tokscript_user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch (e) {
+      console.error("Failed to load user from storage", e);
     }
   }, []);
 
   const handleLogin = (email: string) => {
-    const newUser = { email, isPro: false };
-    setUser(newUser);
-    localStorage.setItem('tokscript_user', JSON.stringify(newUser));
-    setIsAuthModalOpen(false);
+    try {
+      const newUser = { email, isPro: false };
+      setUser(newUser);
+      localStorage.setItem('tokscript_user', JSON.stringify(newUser));
+      setIsAuthModalOpen(false);
+    } catch (e) {
+      console.error("Failed to save login session", e);
+    }
   };
 
   const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('tokscript_user');
-    setResult(null);
+    try {
+      setUser(null);
+      localStorage.removeItem('tokscript_user');
+      setResult(null);
+    } catch (e) {
+      console.error("Logout error", e);
+    }
   };
 
   const handleUpgradeClick = () => {
@@ -52,12 +65,16 @@ const App: React.FC = () => {
   };
 
   const simulatePaymentSuccess = () => {
-    if (user) {
-      const proUser = { ...user, isPro: true };
-      setUser(proUser);
-      localStorage.setItem('tokscript_user', JSON.stringify(proUser));
-      setIsPaymentModalOpen(false);
-      alert("تهانينا! تم تفعيل اشتراك برو بنجاح 🎉");
+    try {
+      if (user) {
+        const proUser = { ...user, isPro: true };
+        setUser(proUser);
+        localStorage.setItem('tokscript_user', JSON.stringify(proUser));
+        setIsPaymentModalOpen(false);
+        alert("تهانينا! تم تفعيل اشتراك برو بنجاح 🎉");
+      }
+    } catch (e) {
+      alert("حدث خطأ أثناء تفعيل الاشتراك.");
     }
   };
 
@@ -67,11 +84,13 @@ const App: React.FC = () => {
     try {
       const data = await processContent(AIAction.TRANSCRIPTION, url);
       setResult(data);
+      // التمرير السلس للنتائج
       setTimeout(() => {
-        document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
+        const resultsEl = document.getElementById('results');
+        if (resultsEl) resultsEl.scrollIntoView({ behavior: 'smooth' });
       }, 300);
     } catch (err: any) {
-      setError(err.message || "حدث خطأ غير متوقع.");
+      setError(err.message || "فشل استخراج النص. تأكد من أن الرابط صحيح.");
     } finally {
       setIsProcessing(false);
     }
@@ -83,7 +102,7 @@ const App: React.FC = () => {
       const data = await processContent(action, text, targetLanguage);
       setResult(data);
     } catch (err: any) {
-      alert("فشل تنفيذ الإجراء.");
+      alert("حدث خطأ أثناء معالجة الطلب.");
     } finally {
       setIsProcessing(false);
     }

@@ -1,20 +1,76 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TokScript AI | TikTok to Text Transcription</title>
-    <meta name="description" content="Extract text from TikTok videos instantly with AI. Summarize, translate, and turn TikTok videos into articles easily.">
+    <title>TokScript AI | استخراج نصوص تيك توك الاحترافي</title>
+    <meta name="description" content="أداة ذكية لاستخراج النصوص من فيديوهات تيك توك بدقة عالية باستخدام الذكاء الاصطناعي.">
+    
+    <!-- منع الشاشة البيضاء: كود حماية فوري -->
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        console.error("Global Error Caught:", msg, "at", url, ":", line);
+        var root = document.getElementById('root');
+        if (root && root.innerHTML.trim() === "") {
+          root.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;text-align:center;padding:20px;">' +
+                           '<h2 style="color:#ff0050;">عذراً، حدث خطأ أثناء التحميل</h2>' +
+                           '<p style="color:#666;">يرجى تحديث الصفحة أو المحاولة لاحقاً</p>' +
+                           '<button onclick="location.reload()" style="padding:10px 20px;background:#000;color:#fff;border:none;border-radius:10px;cursor:pointer;">تحديث الآن</button>' +
+                           '</div>';
+        }
+        return false;
+      };
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
-        .tiktok-gradient { background: linear-gradient(45deg, #00f2ea, #ff0050); }
-        .tiktok-text-gradient { background: linear-gradient(45deg, #00f2ea, #ff0050); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
+        
+        :root {
+            --tiktok-cyan: #00f2ea;
+            --tiktok-pink: #ff0050;
+        }
+
+        body { 
+            font-family: 'Inter', 'Noto Sans Arabic', sans-serif; 
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+        .tiktok-gradient { background: linear-gradient(45deg, var(--tiktok-cyan), var(--tiktok-pink)); }
+        .tiktok-text-gradient { 
+            background: linear-gradient(45deg, var(--tiktok-cyan), var(--tiktok-pink)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        /* Spinner Animation */
+        .initial-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #fff;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff0050;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
+
 <script type="importmap">
 {
   "imports": {
@@ -26,7 +82,13 @@
 }
 </script>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen">
-    <div id="root"></div>
+<body class="bg-slate-50 text-slate-900">
+    <div id="root">
+        <!-- واجهة تحميل أولية تظهر حتى يتم تحميل React -->
+        <div class="initial-loader">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; font-weight: bold; color: #666;">جاري تحضير TokScript AI...</p>
+        </div>
+    </div>
 </body>
 </html>

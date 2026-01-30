@@ -7,10 +7,10 @@ export const processContent = async (
   input: string,
   targetLanguage: string = "Arabic"
 ): Promise<ProcessResult> => {
-  // التحقق من وجود مفتاح API لتجنب انهيار الموقع
   const apiKey = process.env.API_KEY;
+  
   if (!apiKey) {
-    throw new Error("API Key is missing. Please configure it in your environment variables.");
+    throw new Error("API Key غير متاح. يرجى إعداد المفتاح في إعدادات البيئة.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
@@ -43,6 +43,8 @@ export const processContent = async (
     case AIAction.ARTICLE:
       prompt = `حول النص التالي إلى مقال صحفي منظم بعناوين جذابة: \n\n${input}`;
       break;
+    default:
+      prompt = `Extract text from: ${input}`;
   }
 
   try {
@@ -55,7 +57,11 @@ export const processContent = async (
       },
     });
 
-    const resultText = response.text || "لا يمكن استخراج المحتوى حالياً.";
+    if (!response || !response.text) {
+      throw new Error("لم يعثر الذكاء الاصطناعي على محتوى صوتي في هذا الرابط.");
+    }
+
+    const resultText = response.text;
     const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
 
     return {
@@ -64,6 +70,10 @@ export const processContent = async (
     };
   } catch (error: any) {
     console.error("AI Service Error:", error);
-    throw new Error("فشل الاتصال بمحرك الذكاء الاصطناعي. يرجى المحاولة لاحقاً.");
+    // توفير رسائل خطأ واضحة للمستخدم بدلاً من الشاشة البيضاء
+    if (error.message?.includes("finish_reason: SAFETY")) {
+      throw new Error("عذراً، لا يمكن معالجة هذا المحتوى لأسباب تتعلق بسياسات السلامة.");
+    }
+    throw new Error("حدث خطأ أثناء التواصل مع محرك الذكاء الاصطناعي. يرجى المحاولة لاحقاً.");
   }
 };
