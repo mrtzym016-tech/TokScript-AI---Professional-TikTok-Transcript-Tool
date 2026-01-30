@@ -1,4 +1,3 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { AIAction, ProcessResult } from "../types";
 
@@ -7,44 +6,35 @@ export const processContent = async (
   input: string,
   targetLanguage: string = "Arabic"
 ): Promise<ProcessResult> => {
-  const apiKey = process.env.API_KEY;
+  // تهيئة الذكاء الاصطناعي وفقاً للقواعد الصارمة
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
-  if (!apiKey) {
-    throw new Error("API Key غير متاح. يرجى إعداد المفتاح في إعدادات البيئة.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  // استخدام النموذج الموصى به للمهام المعقدة والمبنية على الويب
   const modelName = "gemini-3-flash-preview";
 
   let prompt = "";
   switch (action) {
     case AIAction.TRANSCRIPTION:
-      prompt = `
-        CRITICAL COMMAND: You are a professional verbatim transcriber. 
-        TASK: Extract the EXACT speech from this TikTok URL: ${input}
-
-        STRICT RULES:
-        1. NO TRANSLATION: Do NOT translate the output. Keep it in the native language of the speaker.
-        2. VERBATIM: Provide a word-for-word transcript. 
-        3. NO INTRODUCTION: Return ONLY the raw transcript text.
-        
-        If the video is in Japanese, output Japanese characters. If in Arabic, output Arabic.
-      `;
+      prompt = `TASK: Extract the full verbatim transcript from this TikTok video link: ${input}.
+      STRICT RULES:
+      1. Return ONLY the spoken words.
+      2. DO NOT translate; keep the original language of the audio.
+      3. No introductions or extra text.`;
       break;
     case AIAction.SUMMARIZE:
-      prompt = `قم بتلخيص النص التالي في نقاط مركزة باللغة العربية: \n\n${input}`;
+      prompt = `قم بتلخيص النص التالي في نقاط واضحة باللغة العربية: \n\n${input}`;
       break;
     case AIAction.TRANSLATE:
-      prompt = `ترجم النص التالي إلى ${targetLanguage} بأسلوب احترافي: \n\n${input}`;
+      prompt = `ترجم النص التالي إلى ${targetLanguage} بدقة احترافية: \n\n${input}`;
       break;
     case AIAction.IMPROVE:
-      prompt = `حسن صياغة النص التالي ليكون أكثر احترافية: \n\n${input}`;
+      prompt = `حسن جودة الصياغة لهذا النص مع الحفاظ على المعنى الأصلي: \n\n${input}`;
       break;
     case AIAction.ARTICLE:
-      prompt = `حول النص التالي إلى مقال صحفي منظم بعناوين جذابة: \n\n${input}`;
+      prompt = `حول النص التالي إلى مقال احترافي منظم بالعناوين باللغة العربية: \n\n${input}`;
       break;
     default:
-      prompt = `Extract text from: ${input}`;
+      prompt = input;
   }
 
   try {
@@ -52,28 +42,21 @@ export const processContent = async (
       model: modelName,
       contents: prompt,
       config: {
+        // نستخدم البحث في جوجل لاستخراج البيانات من الروابط الخارجية
         tools: action === AIAction.TRANSCRIPTION ? [{ googleSearch: {} }] : undefined,
-        temperature: 0.1,
       },
     });
 
     if (!response || !response.text) {
-      throw new Error("لم يعثر الذكاء الاصطناعي على محتوى صوتي في هذا الرابط.");
+      throw new Error("تعذر استخراج المحتوى.");
     }
 
-    const resultText = response.text;
-    const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
     return {
-      text: resultText,
-      sources: sources as any
+      text: response.text,
+      sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks as any
     };
   } catch (error: any) {
     console.error("AI Service Error:", error);
-    // توفير رسائل خطأ واضحة للمستخدم بدلاً من الشاشة البيضاء
-    if (error.message?.includes("finish_reason: SAFETY")) {
-      throw new Error("عذراً، لا يمكن معالجة هذا المحتوى لأسباب تتعلق بسياسات السلامة.");
-    }
-    throw new Error("حدث خطأ أثناء التواصل مع محرك الذكاء الاصطناعي. يرجى المحاولة لاحقاً.");
+    throw new Error("حدث خطأ أثناء معالجة الطلب. تأكد من صحة الرابط وحاول مجدداً.");
   }
 };
