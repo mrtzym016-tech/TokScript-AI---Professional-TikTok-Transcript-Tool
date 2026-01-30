@@ -19,8 +19,8 @@ const App: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [pendingUpgrade, setPendingUpgrade] = useState(false);
 
-  // رابط الدفع الخاص بـ Binance Pay (استبدله برابطك الفعلي)
-  const BINANCE_PAYMENT_URL = "https://app.binance.com/payment/sec/placeholder_link";
+  // رابط الدفع الخاص بك (Binance Pay)
+  const BINANCE_PAYMENT_URL = "https://app.binance.com/payment/sec/placeholder";
 
   useEffect(() => {
     const savedUser = localStorage.getItem('tokscript_user');
@@ -28,14 +28,6 @@ const App: React.FC = () => {
       setUser(JSON.parse(savedUser));
     }
   }, []);
-
-  useEffect(() => {
-    if (user && pendingUpgrade && !user.isPro) {
-      // إظهار نافذة الدفع بالعملات الرقمية بعد تسجيل الدخول إذا كان المستخدم يريد الترقية
-      setIsPaymentModalOpen(true);
-      setPendingUpgrade(false);
-    }
-  }, [user, pendingUpgrade]);
 
   const handleLogin = (email: string) => {
     const newUser = { email, isPro: false };
@@ -59,6 +51,16 @@ const App: React.FC = () => {
     }
   };
 
+  const simulatePaymentSuccess = () => {
+    if (user) {
+      const proUser = { ...user, isPro: true };
+      setUser(proUser);
+      localStorage.setItem('tokscript_user', JSON.stringify(proUser));
+      setIsPaymentModalOpen(false);
+      alert("تهانينا! تم تفعيل اشتراك برو بنجاح 🎉");
+    }
+  };
+
   const handleExtract = async (url: string) => {
     setIsProcessing(true);
     setError(null);
@@ -69,7 +71,7 @@ const App: React.FC = () => {
         document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
       }, 300);
     } catch (err: any) {
-      setError(err.message || "فشل استخراج النص. تأكد من صحة الرابط.");
+      setError(err.message || "حدث خطأ غير متوقع.");
     } finally {
       setIsProcessing(false);
     }
@@ -81,7 +83,7 @@ const App: React.FC = () => {
       const data = await processContent(action, text, targetLanguage);
       setResult(data);
     } catch (err: any) {
-      alert("فشل تنفيذ الإجراء. يرجى المحاولة مرة أخرى.");
+      alert("فشل تنفيذ الإجراء.");
     } finally {
       setIsProcessing(false);
     }
@@ -93,9 +95,9 @@ const App: React.FC = () => {
       
       {error && (
         <div className="max-w-2xl mx-auto px-4 mb-8">
-          <div className="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl flex items-center justify-end text-right">
-            <span className="font-semibold">{error}</span>
-            <i className="fa-solid fa-circle-exclamation ml-3 text-xl"></i>
+          <div className="bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-2xl flex items-center justify-center text-right shadow-sm">
+            <span className="font-bold">{error}</span>
+            <i className="fa-solid fa-triangle-exclamation ml-3"></i>
           </div>
         </div>
       )}
@@ -118,16 +120,14 @@ const App: React.FC = () => {
 
       <AuthModal 
         isOpen={isAuthModalOpen} 
-        onClose={() => {
-          setIsAuthModalOpen(false);
-          setPendingUpgrade(false);
-        }} 
+        onClose={() => setIsAuthModalOpen(false)} 
         onLogin={handleLogin}
       />
 
       <BinancePaymentModal 
         isOpen={isPaymentModalOpen} 
         onClose={() => setIsPaymentModalOpen(false)}
+        onConfirm={simulatePaymentSuccess}
         paymentUrl={BINANCE_PAYMENT_URL}
       />
     </Layout>
