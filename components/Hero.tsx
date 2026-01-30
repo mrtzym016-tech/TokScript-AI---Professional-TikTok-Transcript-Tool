@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 
 interface HeroProps {
@@ -23,23 +22,24 @@ const Hero: React.FC<HeroProps> = ({ onExtract, isLoading }) => {
     if (isLoading) {
       interval = setInterval(() => {
         setLoadingStep((prev) => (prev + 1) % steps.length);
-      }, 1200);
+      }, 1500);
     } else {
       setLoadingStep(0);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isLoading]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (url.trim()) {
+    if (url.trim() && !isLoading) {
       onExtract(url);
     }
   };
 
   return (
     <section className="relative overflow-hidden pt-20 pb-20 md:pt-32 md:pb-32 bg-white">
-      {/* Background Decor */}
       <div className="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-100 rounded-full blur-[120px] opacity-30"></div>
       <div className="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-pink-100 rounded-full blur-[120px] opacity-30"></div>
 
@@ -73,13 +73,13 @@ const Hero: React.FC<HeroProps> = ({ onExtract, isLoading }) => {
             <button
               disabled={isLoading}
               type="submit"
-              className={`w-full md:w-auto whitespace-nowrap px-10 py-4 rounded-xl font-black text-white transition-all transform active:scale-95 flex items-center justify-center ${
+              className={`w-full md:w-auto whitespace-nowrap px-10 py-4 rounded-xl font-black text-white transition-all transform active:scale-95 flex items-center justify-center min-w-[200px] ${
                 isLoading ? 'bg-slate-800 cursor-not-allowed' : 'bg-slate-900 hover:bg-black hover:shadow-xl'
               }`}
             >
               {isLoading ? (
                 <>
-                  <i className="fa-solid fa-spinner fa-spin mr-2"></i>
+                  <i className="fa-solid fa-spinner animate-spin-custom mr-2"></i>
                   {steps[loadingStep]}
                 </>
               ) : 'بدء الاستخراج'}

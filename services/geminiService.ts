@@ -1,37 +1,32 @@
 import { GoogleGenAI } from "@google/genai";
-import { AIAction, ProcessResult } from "../types";
 
 export const processContent = async (
-  action: AIAction,
+  action: string,
   input: string,
   targetLanguage: string = "Arabic"
-): Promise<ProcessResult> => {
-  // تهيئة الذكاء الاصطناعي وفقاً للقواعد الصارمة
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+): Promise<any> => {
+  const apiKey = process.env.API_KEY;
   
-  // استخدام النموذج الموصى به للمهام المعقدة والمبنية على الويب
+  if (!apiKey) {
+    throw new Error("تنبيه: مفتاح API غير متوفر حالياً.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   const modelName = "gemini-3-flash-preview";
 
   let prompt = "";
   switch (action) {
-    case AIAction.TRANSCRIPTION:
-      prompt = `TASK: Extract the full verbatim transcript from this TikTok video link: ${input}.
-      STRICT RULES:
-      1. Return ONLY the spoken words.
-      2. DO NOT translate; keep the original language of the audio.
-      3. No introductions or extra text.`;
+    case 'TRANSCRIPTION':
+      prompt = `Extract transcript from TikTok link: ${input}. Deliver verbatim text in original language. Use Google Search if needed.`;
       break;
-    case AIAction.SUMMARIZE:
-      prompt = `قم بتلخيص النص التالي في نقاط واضحة باللغة العربية: \n\n${input}`;
+    case 'SUMMARIZE':
+      prompt = `لخص النص التالي بأسلوب نقاط باللغة العربية: \n\n${input}`;
       break;
-    case AIAction.TRANSLATE:
-      prompt = `ترجم النص التالي إلى ${targetLanguage} بدقة احترافية: \n\n${input}`;
+    case 'IMPROVE':
+      prompt = `حسن صياغة هذا النص ليكون احترافياً: \n\n${input}`;
       break;
-    case AIAction.IMPROVE:
-      prompt = `حسن جودة الصياغة لهذا النص مع الحفاظ على المعنى الأصلي: \n\n${input}`;
-      break;
-    case AIAction.ARTICLE:
-      prompt = `حول النص التالي إلى مقال احترافي منظم بالعناوين باللغة العربية: \n\n${input}`;
+    case 'ARTICLE':
+      prompt = `حول النص التالي لمقال صحفي بالعربية مع عناوين: \n\n${input}`;
       break;
     default:
       prompt = input;
@@ -42,21 +37,20 @@ export const processContent = async (
       model: modelName,
       contents: prompt,
       config: {
-        // نستخدم البحث في جوجل لاستخراج البيانات من الروابط الخارجية
-        tools: action === AIAction.TRANSCRIPTION ? [{ googleSearch: {} }] : undefined,
+        tools: action === 'TRANSCRIPTION' ? [{ googleSearch: {} }] : undefined,
       },
     });
 
     if (!response || !response.text) {
-      throw new Error("تعذر استخراج المحتوى.");
+      throw new Error("لم نتمكن من الحصول على نتيجة.");
     }
 
     return {
       text: response.text,
-      sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks as any
+      sources: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
     };
   } catch (error: any) {
-    console.error("AI Service Error:", error);
-    throw new Error("حدث خطأ أثناء معالجة الطلب. تأكد من صحة الرابط وحاول مجدداً.");
+    console.error("Gemini Error:", error);
+    throw new Error("عذراً، فشلت معالجة الطلب. تأكد من صحة الرابط.");
   }
 };

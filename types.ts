@@ -1,10 +1,11 @@
+// Shared types for the TokScript AI application
 
 export enum AIAction {
+  TRANSCRIPTION = 'TRANSCRIPTION',
   SUMMARIZE = 'SUMMARIZE',
-  TRANSLATE = 'TRANSLATE',
   IMPROVE = 'IMPROVE',
   ARTICLE = 'ARTICLE',
-  TRANSCRIPTION = 'TRANSCRIPTION'
+  TRANSLATE = 'TRANSLATE'
 }
 
 export interface User {
@@ -14,14 +15,7 @@ export interface User {
 
 export interface ProcessResult {
   text: string;
-  sources?: Array<{
-    web?: { uri: string; title: string };
-  }>;
-}
-
-export interface FAQItem {
-  question: string;
-  answer: string;
+  sources: any[];
 }
 
 export interface Plan {
@@ -30,4 +24,9 @@ export interface Plan {
   features: string[];
   cta: string;
   highlighted?: boolean;
+}
+
+export interface FAQItem {
+  question: string;
+  answer: string;
 }

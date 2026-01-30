@@ -4,34 +4,218 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TokScript AI | استخراج نصوص تيك توك الاحترافي</title>
+    <meta name="description" content="أداة ذكية لاستخراج النصوص وتلخيص فيديوهات تيك توك فوراً">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+Arabic:wght@400;700;900&display=swap');
         :root { --tiktok-cyan: #00f2ea; --tiktok-pink: #ff0050; }
-        body { font-family: 'Noto Sans Arabic', 'Inter', sans-serif; margin: 0; background: #f8fafc; }
+        body { font-family: 'Noto Sans Arabic', 'Inter', sans-serif; margin: 0; background: #f8fafc; scroll-behavior: smooth; }
         .tiktok-gradient { background: linear-gradient(45deg, var(--tiktok-cyan), var(--tiktok-pink)); }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .tiktok-text-gradient { 
+          background: linear-gradient(45deg, var(--tiktok-cyan), var(--tiktok-pink));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .animate-spin-custom { animation: spin 1s linear infinite; }
+        .hidden { display: none !important; }
     </style>
+
     <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom": "https://esm.sh/react-dom@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "@google/genai": "https://esm.sh/@google/genai@0.21.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
     "react/": "https://esm.sh/react@^19.2.4/"
   }
 }
 </script>
 </head>
-<body>
-    <div id="root">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #ff0050; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-            <p style="margin-top: 20px; font-weight: bold; color: #64748b; font-family: sans-serif;">جاري تشغيل TokScript AI...</p>
+<body class="antialiased text-slate-900">
+
+    <!-- Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-slate-200 h-16">
+        <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 tiktok-gradient rounded-lg flex items-center justify-center text-white font-bold ml-2">T</div>
+                <span class="text-xl font-extrabold tracking-tight">TokScript <span class="text-slate-500">AI</span></span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-600">
+                <a href="#features" class="hover:text-pink-500 transition-colors">الميزات</a>
+                <a href="#pricing" class="hover:text-pink-500 transition-colors">الأسعار</a>
+                <a href="#faq" class="hover:text-pink-500 transition-colors">الأسئلة</a>
+            </nav>
+            <div class="flex items-center space-x-4" id="auth-section">
+                <button id="login-btn" class="text-sm font-semibold text-slate-700 px-4 py-2 rounded-full hover:bg-slate-100 transition-all">دخول</button>
+                <button id="go-pro-nav" class="tiktok-gradient text-sm font-bold text-white px-5 py-2.5 rounded-full shadow-lg hover:opacity-90 transition-all">Go Pro</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="pt-24">
+        <section class="relative overflow-hidden pt-20 pb-20 md:pt-32 md:pb-32 bg-white">
+            <div class="absolute top-0 left-0 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-100 rounded-full blur-[120px] opacity-30"></div>
+            <div class="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-pink-100 rounded-full blur-[120px] opacity-30"></div>
+
+            <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+                <div class="inline-block px-4 py-1.5 mb-6 text-xs font-bold tracking-widest uppercase text-pink-600 bg-pink-50 rounded-full border border-pink-100">
+                    أداة ذكية تدعم جميع لغات العالم 🌏
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight text-slate-900 leading-[1.1]">
+                    استخرج النص بـ <br /> 
+                    <span class="tiktok-text-gradient">لغة الفيديو الأصلية</span>
+                </h1>
+                <p class="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    تقنية متطورة تتعرف على لغة الفيديو وتستخرج النص حرفياً بدقة عالية، مثالي للتعلم وصناع المحتوى.
+                </p>
+
+                <form id="extract-form" class="relative group max-w-2xl mx-auto mb-6">
+                    <div class="absolute -inset-1 tiktok-gradient rounded-2xl opacity-10 group-focus-within:opacity-100 transition duration-500 blur-md"></div>
+                    <div class="relative flex flex-col md:flex-row items-center bg-white border border-slate-200 rounded-2xl p-2 shadow-2xl focus-within:ring-2 ring-slate-900 transition-all">
+                        <div class="hidden md:block pl-4 text-slate-400">
+                            <i class="fa-brands fa-tiktok text-xl mr-3"></i>
+                        </div>
+                        <input
+                            id="video-url"
+                            dir="rtl"
+                            type="url"
+                            placeholder="ضع رابط فيديو التيك توك هنا..."
+                            class="w-full px-4 py-4 text-lg bg-transparent border-none focus:outline-none focus:ring-0 text-slate-900 placeholder-slate-400 text-right"
+                            required
+                        />
+                        <button
+                            id="submit-btn"
+                            type="submit"
+                            class="w-full md:w-auto whitespace-nowrap px-10 py-4 rounded-xl font-black text-white transition-all transform active:scale-95 flex items-center justify-center min-w-[200px] bg-slate-900 hover:bg-black"
+                        >
+                            <span>بدء الاستخراج</span>
+                            <i id="loading-spinner" class="fa-solid fa-spinner animate-spin-custom mr-2 hidden"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <p id="error-message" class="text-red-500 text-sm font-bold mt-4 hidden"></p>
+            </div>
+        </section>
+
+        <!-- Results Section (Hidden by Default) -->
+        <section id="results-section" class="py-12 bg-slate-50 hidden">
+            <div class="max-w-5xl mx-auto px-4">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                    <div class="bg-slate-50 border-b border-slate-200 p-4 md:px-8 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-bold text-slate-900">النص المستخرج</span>
+                            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] uppercase font-bold rounded-full mr-2">دقة عالية ✅</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                             <button id="btn-summarize" class="ai-action px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 hover:bg-white hover:shadow transition-all">تلخيص</button>
+                             <button id="btn-improve" class="ai-action px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 hover:bg-white hover:shadow transition-all">تحسين</button>
+                             <button id="btn-article" class="ai-action px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 hover:bg-white hover:shadow transition-all">مقال</button>
+                        </div>
+                    </div>
+                    <div class="relative p-8 md:p-12 min-h-[300px]">
+                        <div id="ai-loading-overlay" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center hidden">
+                            <div class="w-12 h-12 tiktok-gradient rounded-xl animate-spin mb-4"></div>
+                            <p class="text-sm font-bold text-slate-800">جاري المعالجة بالذكاء الاصطناعي...</p>
+                        </div>
+                        <textarea id="transcript-area" class="w-full h-full min-h-[300px] text-lg leading-relaxed text-slate-800 bg-transparent border-none focus:ring-0 resize-none text-right" dir="auto" spellcheck="false"></textarea>
+                        
+                        <div id="sources-container" class="mt-8 pt-6 border-t border-slate-100 text-right hidden">
+                            <h4 class="text-sm font-bold text-slate-500 mb-3">المصادر</h4>
+                            <div id="sources-list" class="flex flex-wrap gap-2 justify-end"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 border-t border-slate-200 p-4 md:px-8 flex items-center justify-between">
+                        <p class="text-xs text-slate-500 font-medium">تم الاستخراج بواسطة TokScript AI</p>
+                        <button id="copy-btn" class="bg-slate-900 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all">نسخ النص</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="py-24 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-4 text-center">
+                <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-12">باقات الأسعار</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                    <!-- Free Plan -->
+                    <div class="bg-white/60 border border-slate-200 p-8 rounded-3xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">مجاني / Free</h3>
+                        <div class="text-4xl font-black mb-6">$0</div>
+                        <ul class="space-y-4 mb-10 text-right" dir="rtl">
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> 3 عمليات يومياً</li>
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> استخراج نص قياسي</li>
+                        </ul>
+                        <button class="w-full py-4 bg-slate-100 rounded-xl font-bold">ابدأ الآن</button>
+                    </div>
+                    <!-- Pro Plan -->
+                    <div class="bg-white ring-4 ring-cyan-400 p-8 rounded-3xl shadow-2xl relative scale-105">
+                        <div class="absolute top-0 right-0 -translate-y-1/2 px-4 py-1 tiktok-gradient text-white text-[10px] font-black rounded-full">الأكثر طلباً</div>
+                        <h3 class="text-xl font-bold mb-4">المحترف / Pro</h3>
+                        <div class="text-4xl font-black mb-6">$5</div>
+                        <ul class="space-y-4 mb-10 text-right" dir="rtl">
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> عمليات غير محدودة</li>
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> ذكاء اصطناعي متقدم</li>
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> بدون إعلانات</li>
+                        </ul>
+                        <button id="upgrade-pro-btn" class="w-full py-4 tiktok-gradient text-white rounded-xl font-bold shadow-xl">اشترك الآن</button>
+                    </div>
+                    <!-- Custom -->
+                    <div class="bg-white/60 border border-slate-200 p-8 rounded-3xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4">مخصص / Custom</h3>
+                        <div class="text-4xl font-black mb-6">اتصل بنا</div>
+                        <ul class="space-y-4 mb-10 text-right" dir="rtl">
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> وصول برمجى API</li>
+                            <li><i class="fa-solid fa-check text-cyan-500 ml-2"></i> دعم فني مخصص</li>
+                        </ul>
+                        <button class="w-full py-4 bg-slate-100 rounded-xl font-bold">تواصل معنا</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section id="faq" class="py-24 bg-white">
+            <div class="max-w-3xl mx-auto px-4 text-right" dir="rtl">
+                <h2 class="text-3xl font-black text-center mb-12">الأسئلة الشائعة</h2>
+                <div class="space-y-4">
+                    <div class="border border-slate-200 p-6 rounded-2xl">
+                        <h4 class="font-bold mb-2">هل يدعم الموقع اللغة العربية؟</h4>
+                        <p class="text-slate-600 text-sm">نعم، يدعم الموقع اللغة العربية الفصحى وجميع اللهجات بدقة متناهية.</p>
+                    </div>
+                    <div class="border border-slate-200 p-6 rounded-2xl">
+                        <h4 class="font-bold mb-2">كيف يتم استخراج النص؟</h4>
+                        <p class="text-slate-600 text-sm">نستخدم تقنيات Gemini المتقدمة لتحليل الصوت وتحويله إلى نص مكتوب.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-16 border-t border-slate-800 text-center">
+        <p class="text-sm">© 2025 TokScript AI. جميع الحقوق محفوظة.</p>
+    </footer>
+
+    <!-- Modals -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md hidden">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-10 shadow-2xl relative">
+            <button class="close-modal absolute top-6 left-6 text-slate-400 hover:text-slate-900"><i class="fa-solid fa-times text-xl"></i></button>
+            <h2 class="text-2xl font-black text-slate-900 mb-8 text-right">تسجيل الدخول</h2>
+            <form id="login-form" class="space-y-4" dir="rtl">
+                <input type="email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-xl border border-slate-200 outline-none" required>
+                <input type="password" placeholder="كلمة المرور" class="w-full p-4 rounded-xl border border-slate-200 outline-none" required>
+                <button type="submit" class="w-full py-4 tiktok-gradient text-white font-bold rounded-xl shadow-lg">دخول فوري</button>
+            </form>
         </div>
     </div>
+
+    <!-- Script Entry Point -->
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>

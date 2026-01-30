@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Hero from './components/Hero';
@@ -17,64 +16,56 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [pendingUpgrade, setPendingUpgrade] = useState(false);
 
-  // الرابط الخاص بـ Binance Pay
+  // Constants
   const BINANCE_PAYMENT_URL = "https://app.binance.com/payment/sec/placeholder";
 
-  // تحميل بيانات المستخدم بأمان
+  // Safe browser interaction: Load user from storage only after mount
   useEffect(() => {
     try {
-      const savedUser = localStorage.getItem('tokscript_user');
+      const savedUser = typeof window !== 'undefined' ? localStorage.getItem('tokscript_user') : null;
       if (savedUser) {
         setUser(JSON.parse(savedUser));
       }
     } catch (e) {
-      console.error("Failed to load user from storage", e);
+      console.warn("Storage access failed", e);
     }
   }, []);
 
   const handleLogin = (email: string) => {
-    try {
-      const newUser = { email, isPro: false };
-      setUser(newUser);
+    const newUser = { email, isPro: false };
+    setUser(newUser);
+    if (typeof window !== 'undefined') {
       localStorage.setItem('tokscript_user', JSON.stringify(newUser));
-      setIsAuthModalOpen(false);
-    } catch (e) {
-      console.error("Failed to save login session", e);
     }
+    setIsAuthModalOpen(false);
   };
 
   const handleLogout = () => {
-    try {
-      setUser(null);
+    setUser(null);
+    if (typeof window !== 'undefined') {
       localStorage.removeItem('tokscript_user');
-      setResult(null);
-    } catch (e) {
-      console.error("Logout error", e);
     }
+    setResult(null);
   };
 
   const handleUpgradeClick = () => {
     if (user) {
       setIsPaymentModalOpen(true);
     } else {
-      setPendingUpgrade(true);
       setIsAuthModalOpen(true);
     }
   };
 
   const simulatePaymentSuccess = () => {
-    try {
-      if (user) {
-        const proUser = { ...user, isPro: true };
-        setUser(proUser);
+    if (user) {
+      const proUser = { ...user, isPro: true };
+      setUser(proUser);
+      if (typeof window !== 'undefined') {
         localStorage.setItem('tokscript_user', JSON.stringify(proUser));
-        setIsPaymentModalOpen(false);
-        alert("تهانينا! تم تفعيل اشتراك برو بنجاح 🎉");
       }
-    } catch (e) {
-      alert("حدث خطأ أثناء تفعيل الاشتراك.");
+      setIsPaymentModalOpen(false);
+      alert("تهانينا! تم تفعيل اشتراك برو بنجاح 🎉");
     }
   };
 
@@ -84,11 +75,14 @@ const App: React.FC = () => {
     try {
       const data = await processContent(AIAction.TRANSCRIPTION, url);
       setResult(data);
-      // التمرير السلس للنتائج
-      setTimeout(() => {
-        const resultsEl = document.getElementById('results');
-        if (resultsEl) resultsEl.scrollIntoView({ behavior: 'smooth' });
-      }, 300);
+      
+      // Safe scroll
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          const resultsEl = document.getElementById('results');
+          if (resultsEl) resultsEl.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
     } catch (err: any) {
       setError(err.message || "فشل استخراج النص. تأكد من أن الرابط صحيح.");
     } finally {
@@ -131,7 +125,7 @@ const App: React.FC = () => {
       )}
 
       <Pricing 
-        onStartFree={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+        onStartFree={() => typeof window !== 'undefined' && window.scrollTo({ top: 0, behavior: 'smooth' })} 
         onUpgrade={handleUpgradeClick} 
       />
       
