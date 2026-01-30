@@ -1,0 +1,8 @@
+{
+  "name": "TokScript AI - Professional TikTok Transcript Tool",
+  "description": "A professional AI-powered tool to extract, summarize, and translate TikTok video transcripts instantly. Built for creators, researchers, and learners.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
